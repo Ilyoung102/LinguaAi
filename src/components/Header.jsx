@@ -43,7 +43,7 @@ export function Header({
         <span style={{ fontWeight: 700, fontSize: "18px", background: "linear-gradient(90deg, #a78bfa, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           LinguaAI
         </span>
-        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "10px" }}>v1.25</span>
+        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "10px" }}>v1.26</span>
       </div>
 
       {/* Language Selector */}
@@ -273,14 +273,6 @@ export function Header({
           }}
         >
           <span>⚙️</span>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.2 }}>
-            <span style={{ fontSize: "11px", color: AI_PROVIDERS[aiProvider].color, fontWeight: 700 }}>
-              {AI_PROVIDERS[aiProvider].icon} {AI_PROVIDERS[aiProvider].name}
-            </span>
-            <span style={{ fontSize: "9px", color: "#666" }}>
-              {AI_PROVIDERS[aiProvider].models.find(m => m.id === aiModels[aiProvider])?.label || aiModels[aiProvider]}
-            </span>
-          </div>
           {!apiKeys[aiProvider] && aiProvider !== "claude" && (
             <span style={{ fontSize: "9px", color: "#f87171", background: "rgba(248,113,113,0.1)", padding: "1px 6px", borderRadius: "6px", border: "1px solid rgba(248,113,113,0.3)" }}>키 필요</span>
           )}

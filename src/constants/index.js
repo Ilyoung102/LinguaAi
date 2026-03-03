@@ -50,7 +50,7 @@ export const AI_PROVIDERS = {
   },
 };
 
-export const MODE_LABELS = { casual: "💬 일상 대화", structured: "📚 구조화 수업" };
+export const MODE_LABELS = { casual: "💬 대화", structured: "📚 수업" };
 
 export const INITIAL_GOALS = [
   { id: 1, text: "기본 인사말 마스터", done: false },
