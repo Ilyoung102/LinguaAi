@@ -233,7 +233,8 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
     <div style={{
       fontFamily: "'Noto Sans KR', 'Noto Sans JP', sans-serif",
       background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-      minHeight: "100vh",
+      height: "100%", // Changed from minHeight: "100vh"
+      overflow: "hidden", // Added to lock the container
       color: "#e8e8f0",
       display: "flex",
       flexDirection: "column",
@@ -266,7 +267,7 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
         />
       )}
 
-      <div style={{ display: "flex", flex: 1, gap: 0, maxHeight: "calc(100vh - 65px)", overflow: "hidden" }}>
+      <div style={{ display: "flex", flex: 1, gap: 0, minHeight: 0, overflow: "hidden" }}>
         <ChatWindow
           messages={messages}
           input={input} setInput={setInput}

@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#0f0c29" />
     <meta name="description" content="AI 언어 학습 튜터 - 일본어, 중국어, 영어 등 다국어 학습" />
     <title>LinguaAI</title>
@@ -12,8 +12,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #0f0c29; }
-      #root { min-height: 100vh; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Prevent bouncing and scrolling of the entire page */
+        overscroll-behavior: none; /* Disables pull-to-refresh on mobile */
+        background: #0f0c29; 
+      }
+      #root { 
+        height: 100%; 
+        display: flex;
+        flex-direction: column;
+      }
     </style>
   </head>
   <body>
