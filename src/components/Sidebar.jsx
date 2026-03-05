@@ -23,9 +23,17 @@ export function Sidebar({
   const [showConvDelete, setShowConvDelete] = useState(null);
   const fileInputRef = useRef(null);
 
+  const TABS = [
+    { id: "situations", label: "🗺️ 상황",  icon: "🗺️" },
+    { id: "feedback",   label: "💡 피드백", icon: "💡" },
+    { id: "goals",      label: "🎯 목표",   icon: "🎯" },
+    { id: "progress",   label: "📊 진행",   icon: "📊" },
+    { id: "history",    label: "📋 목록",   icon: "📋" },
+  ];
+
   return (
     <div style={{
-      width: sidebarOpen ? "320px" : "40px", // Changed collapsed width to 40px
+      width: sidebarOpen ? "320px" : "40px",
       minWidth: sidebarOpen ? "320px" : "40px",
       background: "rgba(15, 12, 41, 0.95)",
       backdropFilter: "blur(10px)",
@@ -39,27 +47,50 @@ export function Sidebar({
       bottom: 0,
       zIndex: 1000,
       boxShadow: sidebarOpen ? "-10px 0 30px rgba(0,0,0,0.5)" : "none",
+      overflow: "hidden",
     }}>
-      {/* Inner Content Wrapper - Hides content when sidebar is closed */}
+
+      {/* 접혔을 때: 세로 탭 아이콘 */}
+      {!sidebarOpen && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: "8px",
+          gap: "4px",
+          flex: 1,
+        }}>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSidebarOpen(true); }}
+              title={tab.label}
+              style={{
+                width: "36px", height: "36px",
+                background: activeTab === tab.id ? "rgba(167,139,250,0.25)" : "transparent",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "17px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background 0.2s",
+              }}
+            >{tab.icon}</button>
+          ))}
+        </div>
+      )}
+
+      {/* 펼쳐졌을 때: 전체 내용 */}
       <div style={{
         width: "320px",
         flex: 1,
-        display: "flex",
+        display: sidebarOpen ? "flex" : "none",
         flexDirection: "column",
-        opacity: sidebarOpen ? 1 : 0,
-        pointerEvents: sidebarOpen ? "auto" : "none",
-        transition: "opacity 0.2s ease",
-        overflow: "hidden"
+        overflow: "hidden",
       }}>
         {/* Tabs */}
         <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        {[
-          { id: "situations", label: "🗺️ 상황" },
-          { id: "feedback",   label: "💡 피드백" },
-          { id: "goals",      label: "🎯 목표" },
-          { id: "progress",   label: "📊 진행" },
-          { id: "history",    label: "📋 목록" },
-        ].map(tab => (
+        {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
             flex: 1,
             padding: "11px 3px",
@@ -476,36 +507,32 @@ export function Sidebar({
       </div>
       </div>
 
-      {/* Sidebar Toggle Button at the Bottom */}
-      <button
-        onClick={() => setSidebarOpen(o => !o)}
-        title="메뉴 토글"
-        style={{
-          width: "100%",
-          height: "48px",
-          background: "rgba(255,255,255,0.03)",
-          border: "none",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#a78bfa",
-          transition: "all 0.3s ease",
-          flexShrink: 0,
-          marginTop: "auto"
-        }}
-      >
-        <svg 
-          width="24" height="24" viewBox="0 0 24 24" 
-          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transition: "transform 0.3s ease", transform: sidebarOpen ? "rotate(0deg)" : "rotate(90deg)" }}
+      {/* 닫기 버튼 — 사이드바 열렸을 때만 */}
+      {sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(false)}
+          title="사이드바 접기"
+          style={{
+            width: "100%",
+            height: "40px",
+            background: "rgba(255,255,255,0.03)",
+            border: "none",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#666",
+            transition: "all 0.2s",
+            flexShrink: 0,
+          }}
         >
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span style={{ fontSize: "11px", marginLeft: "4px", color: "#666" }}>접기</span>
+        </button>
+      )}
     </div>
   );
 }

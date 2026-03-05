@@ -27,13 +27,13 @@ export function filterForTTS(text) {
     const t = line.trim();
     if (!t) continue;
 
-    // 📢 발음 줄 — 콜론 뒤 발음 텍스트만 추출
+    // 📢 발음 줄 — 콜론 있으면 뒤 텍스트, 없으면 📢 제거 후 전체 사용
     if (t.startsWith("📢")) {
       const colonIdx = t.indexOf(":");
-      if (colonIdx !== -1) {
-        const pron = t.slice(colonIdx + 1).trim();
-        if (pron) result.push(cleanForTTS(pron));
-      }
+      const pron = colonIdx !== -1
+        ? t.slice(colonIdx + 1).trim()
+        : t.replace(/^📢\s*/, "").trim();
+      if (pron) result.push(cleanForTTS(pron));
       continue;
     }
 
@@ -44,13 +44,13 @@ export function filterForTTS(text) {
     if (t.startsWith("📖")) continue;
     if (t.startsWith("•") || t.startsWith("-")) continue;
 
-    // 한글 비율 50% 초과 줄 제거
+    // 한글 비율 70% 초과 줄만 제거 (발음 표기 한글은 살림)
     const hangulCount = (t.match(/[가-힯]/g) || []).length;
     const totalLen = t.replace(/\s/g, "").length;
-    if (totalLen > 0 && hangulCount / totalLen > 0.5) continue;
+    if (totalLen > 0 && hangulCount / totalLen > 0.7) continue;
 
     // A: / B: 화자 레이블 제거 후 대사만 추출
-    const speakerMatch = t.match(/^[A-Za-z]{1,2}:\s*(.+)$/);
+    const speakerMatch = t.match(/^[A-Za-z가-힯]{1,2}:\s*(.+)$/);
     if (speakerMatch) {
       result.push(cleanForTTS(speakerMatch[1].trim()));
       continue;
@@ -64,10 +64,11 @@ export function filterForTTS(text) {
 
 export function splitSentences(text) {
   const cleaned = filterForTTS(text);
-  // Split on sentence-ending punctuation
-  return cleaned
-    .replace(/[ἰ0-ἰ0]/gu, " ")  // strip emoji
-    .split(/(?<=[.!?。！？])\s+/)
+  // 이모지 제거 (올바른 유니코드 범위)
+  const noEmoji = cleaned.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]/gu, " ");
+  // 문장 부호 기준 분리 (일본어/중국어 포함)
+  return noEmoji
+    .split(/(?<=[.!?。！？‼⁉])\s*/)
     .map(s => s.trim())
     .filter(s => s.length > 1);
 }
