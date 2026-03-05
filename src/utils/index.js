@@ -181,6 +181,73 @@ ${nativeName} ${range} 수준의 핵심 어휘 15개를 선정해줘.
   return map[sit.id] || dialogueBase(sit.label);
 }
 
+// JSON 파일로 저장 (메시지 복원 가능)
+export function saveAsJsonFile(messages, lang, level, mode) {
+  if (messages.length === 0) return null;
+
+  const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+  const rawTitle = lastUserMsg ? lastUserMsg.text.replace(/[\n \u200b\u200c\u200d\u200e\u200f\ufeff]+/g, " ").trim().slice(0, 10) : "대화";
+  const now = new Date();
+  const ts = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0"),
+  ].join("");
+  const filename = `${rawTitle}_${ts}.json`;
+
+  // JSON 형식으로 메타데이터와 메시지 저장
+  const jsonData = {
+    version: "1.0",
+    metadata: {
+      title: rawTitle,
+      lang: lang.code,
+      langName: lang.name,
+      langNativeName: lang.nativeName,
+      langFlag: lang.flag,
+      level,
+      mode,
+      savedAt: now.toISOString(),
+      displayTime: now.toLocaleString("ko-KR"),
+    },
+    messages: messages.map(m => ({
+      id: m.id,
+      role: m.role,
+      text: m.text,
+      ts: m.ts,
+      isScenario: m.isScenario,
+      scenarioColor: m.scenarioColor,
+      scenarioIcon: m.scenarioIcon,
+    })),
+  };
+
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  const encoded = encodeURIComponent(jsonString);
+  const a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encoded;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  return {
+    id: ts,
+    title: rawTitle,
+    filename,
+    langName: lang.name,
+    langNativeName: lang.nativeName,
+    langCode: lang.code,
+    langFlag: lang.flag,
+    level,
+    mode,
+    savedAt: now.toLocaleString("ko-KR"),
+    messageCount: messages.filter(m => !m.isScenario).length,
+    format: "json",
+  };
+}
+
+// 하위 호환성: txt 저장도 유지
 export function saveAsTextFile(messages, lang, level, mode) {
   if (messages.length === 0) return null;
 
@@ -230,20 +297,66 @@ export function saveAsTextFile(messages, lang, level, mode) {
     savedAt: now.toLocaleString("ko-KR"),
     content,
     messageCount: messages.filter(m => !m.isScenario).length,
+    format: "txt",
   };
 }
 
 export function parseConvFile(file, content, LANGUAGES) {
-  if (!content.startsWith("LinguaAI 학습 대화 기록")) return null;
+  // JSON 형식 파일
+  if (file.name.endsWith(".json")) {
+    try {
+      const jsonData = JSON.parse(content);
+      if (!jsonData.metadata || !jsonData.messages) {
+        alert(`⚠️ "${file.name}" — LinguaAI JSON 포맷이 아닙니다.`);
+        return null;
+      }
+
+      const meta = jsonData.metadata;
+      const lang = LANGUAGES.find(l => l.code === meta.lang) || LANGUAGES[0];
+
+      return {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        title: meta.title,
+        filename: file.name,
+        langName: meta.langName,
+        langCode: meta.lang,
+        langNativeName: meta.langNativeName,
+        langFlag: meta.langFlag,
+        level: meta.level,
+        mode: meta.mode,
+        savedAt: meta.displayTime,
+        messageCount: jsonData.messages.filter(m => !m.isScenario).length,
+        format: "json",
+        
+        // 복원용 데이터
+        messages: jsonData.messages,
+        restorable: true,
+      };
+    } catch (e) {
+      alert(`⚠️ "${file.name}" — JSON 파싱 오류: ${e.message}`);
+      return null;
+    }
+  }
+
+  // TXT 형식 파일 (기존 방식)
+  if (!content.startsWith("LinguaAI 학습 대화 기록")) {
+    alert(`⚠️ "${file.name}" — LinguaAI 포맷이 아닙니다.`);
+    return null;
+  }
+
   const lines = content.split("\n");
-  const metaLine  = lines[1] || "";
-  const langMatch  = metaLine.match(/언어: (.+?) \(/);
+  const metaLine = lines[1] || "";
+  const langMatch = metaLine.match(/언어: (.+?) \(/);
   const levelMatch = metaLine.match(/레벨: (\w+)/);
+  const modeMatch = metaLine.match(/모드: (.+?)$/);
   const savedMatch = lines[2]?.match(/저장 일시: (.+)/);
-  const langName = langMatch?.[1]  || "알 수 없음";
-  const level    = levelMatch?.[1] || "A1";
-  const savedAt  = savedMatch?.[1] || file.name;
+
+  const langName = langMatch?.[1] || "알 수 없음";
+  const level = levelMatch?.[1] || "A1";
+  const mode = modeMatch?.[1]?.includes("대화") ? "casual" : "structured";
+  const savedAt = savedMatch?.[1] || file.name;
   const rawTitle = file.name.replace(/\.txt$/, "").slice(0, 20);
+
   return {
     id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
     title: rawTitle,
@@ -251,8 +364,11 @@ export function parseConvFile(file, content, LANGUAGES) {
     langName,
     langFlag: LANGUAGES.find(l => l.name === langName)?.flag || "📄",
     level,
+    mode,
     savedAt,
     content,
     messageCount: (content.match(/👤 나/g) || []).length,
+    format: "txt",
+    restorable: false, // TXT는 메시지 복원 지원 안 함
   };
 }

@@ -7,7 +7,7 @@ import { useTTS } from "./hooks/useTTS";
 import { useSettings } from "./hooks/useSettings";
 import { useChat } from "./hooks/useChat";
 import { LANGUAGES, LEVELS, INITIAL_GOALS } from "./constants";
-import { getWelcomeMessage, buildScenarioPrompt, splitSentences, saveAsTextFile, parseConvFile } from "./utils";
+import { getWelcomeMessage, buildScenarioPrompt, splitSentences, saveAsJsonFile, saveAsTextFile, parseConvFile } from "./utils";
 
 export default function LanguageTutor() {
   const [lang, setLang] = useState(LANGUAGES[0]); // 영어(index 0)
@@ -235,7 +235,8 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
   }, [convList]);
 
   function handleSave() {
-    const entry = saveAsTextFile(messages, lang, level, mode);
+    // JSON으로 저장 (기본)
+    const entry = saveAsJsonFile(messages, lang, level, mode);
     if (!entry) return;
     setConvList(prev => {
       const filtered = prev.filter(e => e.id !== entry.id);
@@ -249,7 +250,8 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
       const reader = new FileReader();
       reader.onload = evt => {
         const entry = parseConvFile(file, evt.target.result, LANGUAGES);
-        if (!entry) { alert(`⚠️ "${file.name}" — LinguaAI 포맷이 아닙니다.`); return; }
+        if (!entry) return;
+        
         setConvList(prev => {
           const filtered = prev.filter(e => e.filename !== file.name);
           return [entry, ...filtered].slice(0, 100);
@@ -258,6 +260,34 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
       reader.readAsText(file, "utf-8");
     });
     e.target.value = "";
+  }
+
+  // 저장된 대화 복원: JSON 파일에서 메시지 불러오기
+  function handleRestoreConv(conv) {
+    if (!conv.restorable || !conv.messages) {
+      alert("⚠️ 이 파일은 메시지 복원을 지원하지 않습니다." + 
+            "\n\n이 대화를 보려면 다시 보기 버튼을 사용하세요.");
+      return;
+    }
+
+    // 언어/레벨 설정 복원
+    const convLang = LANGUAGES.find(l => l.code === conv.langCode);
+    if (convLang && convLang.code !== lang.code) {
+      setLang(convLang);
+    }
+    if (conv.level !== level) {
+      setLevel(conv.level);
+    }
+    if (conv.mode && conv.mode !== mode) {
+      setMode(conv.mode);
+    }
+
+    // 메시지 복원
+    setMessages(conv.messages);
+    setFeedback([]); // 피드백 초기화
+    
+    // 토스트 메시지
+    alert(`✅ "${conv.title}" 대화가 복원되었습니다.\n지금부터 이어서 대화할 수 있습니다!`);
   }
 
   function deleteConv(id) {
@@ -347,6 +377,7 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           convList={convList}
           onLoadFiles={handleLoadFiles}
           onDeleteConv={deleteConv}
+          onRestoreConv={handleRestoreConv}
           onClearConvList={() => setConvList([])}
         />
       </div>
