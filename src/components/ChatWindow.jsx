@@ -18,7 +18,6 @@ export function ChatWindow({
   speak,
   repeatSpeak,
   onSave,
-  onNewChat,
 }) {
   const chatRef = useRef(null);
 
@@ -203,33 +202,6 @@ export function ChatWindow({
           transition: "all 0.2s",
           flexShrink: 0,
         }}>➤</button>
-
-        {/* 새 채팅 버튼 */}
-        <button
-          onClick={() => onNewChat && onNewChat()}
-          title="현재 대화를 저장하고 새 채팅 시작"
-          style={{
-            background: "rgba(139,92,246,0.15)",
-            border: "1px solid rgba(139,92,246,0.4)",
-            borderRadius: "12px",
-            padding: "12px 14px",
-            color: "#8b5cf6",
-            cursor: "pointer",
-            fontSize: "16px",
-            transition: "all 0.2s",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-          }}
-          onMouseEnter={(e) => e.target.style.background = "rgba(139,92,246,0.25)"}
-          onMouseLeave={(e) => e.target.style.background = "rgba(139,92,246,0.15)"}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          <span style={{ fontSize: "11px" }}>새 채팅</span>
-        </button>
 
         {/* 저장 버튼 */}
         <button

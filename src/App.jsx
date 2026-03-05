@@ -349,6 +349,7 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
         apiKeys={apiKeys}
         setShowSettings={setShowSettings}
         sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
+        onNewChat={handleNewChat}
       />
 
       {showSettings && (
@@ -385,7 +386,6 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           speak={(text, id) => speak(text, id, splitSentences)}
           repeatSpeak={(text, id) => repeatSpeak(text, id, splitSentences)}
           onSave={handleSave}
-          onNewChat={handleNewChat}
         />
 
         <Sidebar
@@ -404,7 +404,6 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           onLoadFiles={handleLoadFiles}
           onDeleteConv={deleteConv}
           onRestoreConv={handleRestoreConv}
-          onNewChat={handleNewChat}
           onClearConvList={() => setConvList([])}
         />
       </div>

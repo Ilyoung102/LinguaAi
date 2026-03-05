@@ -18,7 +18,6 @@ export function Sidebar({
   onLoadFiles,
   onDeleteConv,
   onRestoreConv,
-  onNewChat,
   onClearConvList,
 }) {
   const [activeTab, setActiveTab] = useState("history");
@@ -379,28 +378,6 @@ export function Sidebar({
         {/* ── 📋 목록 탭 ── */}
         {activeTab === "history" && (
           <>
-            {/* 새 채팅 버튼 */}
-            <button
-              onClick={() => onNewChat?.()}
-              style={{
-                width: "100%",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1))",
-                border: "1px solid rgba(139,92,246,0.4)",
-                borderRadius: "10px", padding: "10px 14px", color: "#a78bfa",
-                cursor: "pointer", fontSize: "13px", fontWeight: 600,
-                marginBottom: "12px",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => e.target.style.background = "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.2))"}
-              onMouseLeave={(e) => e.target.style.background = "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1))"}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-              새 채팅
-            </button>
-
             {/* 툴바 */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "4px" }}>
               <button
@@ -484,63 +461,60 @@ export function Sidebar({
                       >취소</button>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                      {/* 복원 버튼 (JSON 파일만) */}
-                      {entry.restorable && (
-                        <button
-                          onClick={() => onRestoreConv?.(entry)}
-                          style={{ 
-                            width: "100%",
-                            background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1))",
-                            border: "1px solid rgba(34,197,94,0.4)",
-                            borderRadius: "8px",
-                            padding: "6px 0",
-                            color: "#22c55e",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            transition: "all 0.2s",
-                          }}
-                          onMouseEnter={(e) => e.target.style.background = "linear-gradient(135deg, rgba(34,197,94,0.3), rgba(34,197,94,0.2))"}
-                          onMouseLeave={(e) => e.target.style.background = "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1))"}
-                        >▶ 이어서 대화하기</button>
-                      )}
-                      
-                      {/* 다른 버튼들 */}
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        {entry.content ? (
-                          <button
-                            onClick={() => {
-                              const w = window.open("", "_blank");
-                              if (w) { w.document.write(`<pre style="font-family:sans-serif;padding:20px;white-space:pre-wrap;">${entry.content}</pre>`); w.document.title = entry.title; }
-                              else {
-                                const a = document.createElement("a");
-                                a.href = "data:text/plain;charset=utf-8," + encodeURIComponent(entry.content);
-                                a.download = entry.filename;
-                                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                              }
-                            }}
-                            style={{ flex: 1, background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: "8px", padding: "5px 0", color: "#a78bfa", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}
-                          >👁 보기</button>
-                        ) : null}
-                        <button
-                          onClick={() => {
-                            const a = document.createElement("a");
-                            // JSON 파일이면 JSON으로, TXT 파일이면 TXT로 다운로드
-                            const content = entry.content || JSON.stringify(entry, null, 2);
-                            a.href = entry.format === "json" 
-                              ? "data:application/json;charset=utf-8," + encodeURIComponent(content)
-                              : "data:text/plain;charset=utf-8," + encodeURIComponent(content);
-                            a.download = entry.filename;
-                            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                          }}
-                          style={{ flex: 1, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.3)", borderRadius: "8px", padding: "5px 0", color: "#4ade80", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}
-                        >⬇ 다운</button>
-                        <button
-                          onClick={() => setShowConvDelete(entry.id)}
-                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "5px 8px", color: "#555", cursor: "pointer", fontSize: "11px" }}
-                        >✕</button>
-                      </div>
+                    <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                      {/* 👁 보기/복원 통합 버튼 (아이콘만) */}
+                      <button
+                        onClick={() => {
+                          if (entry.restorable && entry.messages) {
+                            // JSON 파일: 복원
+                            onRestoreConv?.(entry);
+                          } else if (entry.content) {
+                            // TXT 파일: 보기
+                            const w = window.open("", "_blank");
+                            if (w) { 
+                              w.document.write(`<pre style="font-family:sans-serif;padding:20px;white-space:pre-wrap;word-wrap:break-word;">${entry.content}</pre>`); 
+                              w.document.title = entry.title; 
+                            }
+                          }
+                        }}
+                        title={entry.restorable ? "이어서 대화하기" : "대화 보기"}
+                        style={{
+                          background: "rgba(167,139,250,0.15)",
+                          border: "1px solid rgba(167,139,250,0.3)",
+                          borderRadius: "8px",
+                          padding: "8px 10px",
+                          color: "#a78bfa",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = "rgba(167,139,250,0.3)"}
+                        onMouseLeave={(e) => e.target.style.background = "rgba(167,139,250,0.15)"}
+                      >👁</button>
+
+                      {/* ✕ 삭제 버튼 (아이콘만) */}
+                      <button
+                        onClick={() => setShowConvDelete(entry.id)}
+                        title="삭제"
+                        style={{
+                          background: "rgba(248,113,113,0.1)",
+                          border: "1px solid rgba(248,113,113,0.2)",
+                          borderRadius: "8px",
+                          padding: "8px 10px",
+                          color: "#f87171",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = "rgba(248,113,113,0.2)"}
+                        onMouseLeave={(e) => e.target.style.background = "rgba(248,113,113,0.1)"}
+                      >✕</button>
                     </div>
                   )}
                 </div>

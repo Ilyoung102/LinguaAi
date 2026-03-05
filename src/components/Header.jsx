@@ -19,7 +19,8 @@ export function Header({
   aiModels,
   apiKeys,
   setShowSettings,
-  sidebarOpen, setSidebarOpen
+  sidebarOpen, setSidebarOpen,
+  onNewChat
 }) {
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showTtsPanel, setShowTtsPanel] = useState(false);
@@ -255,6 +256,31 @@ export function Header({
           }}>{label}</button>
         ))}
         </div>
+
+        {/* 📝 새 채팅 버튼 */}
+        <button
+          onClick={() => onNewChat?.()}
+          title="새 채팅 시작"
+          style={{
+            background: "rgba(139,92,246,0.15)",
+            border: "1px solid rgba(139,92,246,0.4)",
+            borderRadius: "10px",
+            padding: "7px 13px",
+            color: "#a78bfa",
+            cursor: "pointer",
+            fontSize: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => e.target.style.background = "rgba(139,92,246,0.25)"}
+          onMouseLeave={(e) => e.target.style.background = "rgba(139,92,246,0.15)"}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
 
         {/* ⚙️ AI 설정 버튼 */}
         <button
