@@ -18,9 +18,10 @@ export function Sidebar({
   onLoadFiles,
   onDeleteConv,
   onRestoreConv,
+  onNewChat,
   onClearConvList,
 }) {
-  const [activeTab, setActiveTab] = useState("situations");
+  const [activeTab, setActiveTab] = useState("history");
   const [showConvDelete, setShowConvDelete] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -378,6 +379,28 @@ export function Sidebar({
         {/* ── 📋 목록 탭 ── */}
         {activeTab === "history" && (
           <>
+            {/* 새 채팅 버튼 */}
+            <button
+              onClick={() => onNewChat?.()}
+              style={{
+                width: "100%",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1))",
+                border: "1px solid rgba(139,92,246,0.4)",
+                borderRadius: "10px", padding: "10px 14px", color: "#a78bfa",
+                cursor: "pointer", fontSize: "13px", fontWeight: 600,
+                marginBottom: "12px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => e.target.style.background = "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.2))"}
+              onMouseLeave={(e) => e.target.style.background = "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1))"}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              새 채팅
+            </button>
+
             {/* 툴바 */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "4px" }}>
               <button

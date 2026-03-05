@@ -290,6 +290,31 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
     alert(`✅ "${conv.title}" 대화가 복원되었습니다.\n지금부터 이어서 대화할 수 있습니다!`);
   }
 
+  // 새 채팅 시작: 현재 대화 저장 후 초기화
+  function handleNewChat() {
+    // 1. 현재 대화가 있으면 저장
+    if (messages.length > 1) {
+      // Welcome 메시지 외에 실제 대화가 있으면 저장
+      const entry = saveAsJsonFile(messages, lang, level, mode);
+      if (entry) {
+        setConvList(prev => {
+          const filtered = prev.filter(e => e.id !== entry.id);
+          return [entry, ...filtered].slice(0, 100);
+        });
+      }
+    }
+
+    // 2. 대화 초기화
+    setMessages([{
+      role: "assistant",
+      text: getWelcomeMessage(lang),
+      ts: Date.now(),
+      id: Date.now(),
+    }]);
+    setFeedback([]);
+    setInput("");
+  }
+
   function deleteConv(id) {
     setConvList(prev => prev.filter(e => e.id !== id));
   }
@@ -360,6 +385,7 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           speak={(text, id) => speak(text, id, splitSentences)}
           repeatSpeak={(text, id) => repeatSpeak(text, id, splitSentences)}
           onSave={handleSave}
+          onNewChat={handleNewChat}
         />
 
         <Sidebar
@@ -378,6 +404,7 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           onLoadFiles={handleLoadFiles}
           onDeleteConv={deleteConv}
           onRestoreConv={handleRestoreConv}
+          onNewChat={handleNewChat}
           onClearConvList={() => setConvList([])}
         />
       </div>
