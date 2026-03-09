@@ -62,8 +62,8 @@ export function Sidebar({
 
     return (
         <div style={{
-            width: sidebarOpen ? "320px" : "40px",
-            minWidth: sidebarOpen ? "320px" : "40px",
+            width: sidebarOpen ? "280px" : "40px",
+            minWidth: sidebarOpen ? "280px" : "40px",
             background: "rgba(15, 12, 41, 0.95)",
             backdropFilter: "blur(10px)",
             borderLeft: "1px solid rgba(255,255,255,0.1)",
@@ -111,7 +111,7 @@ export function Sidebar({
 
             {/* 펼쳐졌을 때: 전체 내용 */}
             <div style={{
-                width: "320px",
+                width: "280px",
                 flex: 1,
                 display: sidebarOpen ? "flex" : "none",
                 flexDirection: "column",
@@ -434,35 +434,26 @@ export function Sidebar({
                                             }}
                                         >
                                             {/* Header: Flag and Title */}
-                                            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
-                                                <span style={{
-                                                    fontSize: "24px",
-                                                    background: "rgba(255,255,255,0.05)",
-                                                    width: "40px", height: "40px",
-                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                    borderRadius: "12px", flexShrink: 0
-                                                }}>{entry.langFlag || "🌐"}</span>
+                                            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "8px" }}>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
                                                     <div style={{
                                                         fontWeight: 700, color: "#fff",
-                                                        fontSize: "14px", marginBottom: "2px",
+                                                        fontSize: "13px", marginBottom: "2px",
                                                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
                                                     }}>{entry.title || "새로운 대화"}</div>
-                                                    <div style={{ fontSize: "11px", color: "#888", display: "flex", alignItems: "center", gap: "6px" }}>
-                                                        <span>{entry.langName}</span>
-                                                        <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#444" }} />
-                                                        <span style={{ color: LEVEL_COLORS[entry.level as keyof typeof LEVEL_COLORS] || "#888", fontWeight: 700 }}>{entry.level}</span>
+                                                    <div style={{ fontSize: "11px", color: "#666" }}>
+                                                        {entry.langName}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Footer: Date and Message Count */}
                                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                                <div style={{ fontSize: "10px", color: "#555" }}>
+                                                <div style={{ fontSize: "10px", color: "#444" }}>
                                                     {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
                                                 </div>
-                                                <div style={{ fontSize: "10px", background: "rgba(167,139,250,0.15)", color: "#a78bfa", padding: "3px 8px", borderRadius: "8px", fontWeight: 600 }}>
-                                                    {entry.messages?.length || 0} messages
+                                                <div style={{ fontSize: "9px", background: "rgba(167,139,250,0.12)", color: "#a78bfa", padding: "2px 6px", borderRadius: "6px", fontWeight: 600 }}>
+                                                    {entry.messages?.length || 0} msgs
                                                 </div>
                                             </div>
 

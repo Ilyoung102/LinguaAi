@@ -71,7 +71,7 @@ export function Header({
                 <span style={{ fontWeight: 700, fontSize: "18px", background: "linear-gradient(90deg, #a78bfa, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                     LinguaAI
                 </span>
-                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "10px" }}>v1.27</span>
+                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", fontWeight: 600, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "10px" }}>v1.28</span>
             </div>
 
             {/* Language Selector */}
