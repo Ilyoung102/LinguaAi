@@ -12,7 +12,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [lang, setLang] = useState<Language>(LANGUAGES[0]); // 영어
   const [level, setLevel] = useState<string>("A1");
   const [mode, setMode] = useState<"casual" | "structured">("casual");
-  const [sessionStart] = useState<number>(Date.now());
 
   const changeLanguage = useCallback((newLang: Language) => {
     setLang(newLang);
@@ -34,7 +33,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     lang,
     level,
     mode,
-    sessionStart,
     changeLanguage,
     changeLevel,
     changeMode,

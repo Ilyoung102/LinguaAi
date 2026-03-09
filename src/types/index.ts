@@ -73,7 +73,6 @@ export interface LanguageContextType {
   lang: Language;
   level: string;
   mode: "casual" | "structured";
-  sessionStart: number;
   changeLanguage: (lang: Language) => void;
   changeLevel: (level: string) => void;
   changeMode: (mode: "casual" | "structured") => void;
@@ -111,6 +110,8 @@ export interface ChatContextType {
   clearMessages: () => void;
   initializeWelcomeMessage: (msg: ChatMessage) => void;
   callAI: (systemPrompt: string, history: { role: string; content: string }[], userText: string, maxTokens?: number) => Promise<string>;
+  sendMessage: (inputText?: string) => Promise<void>;
+  sendScenario: (sit: any) => Promise<void>;
 }
 
 export interface UIContextType {
@@ -174,4 +175,5 @@ export interface SettingsContextType {
   setAiModels: (models: AIModels) => void;
   apiKeys: APIKeys;
   setApiKeys: (keys: APIKeys) => void;
+  sessionStart: number;
 }

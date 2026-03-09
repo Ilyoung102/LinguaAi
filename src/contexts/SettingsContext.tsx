@@ -26,6 +26,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         } catch { return { claude: "", openai: "", gemini: "" }; }
     });
 
+    const [sessionStart] = useState<number>(Date.now());
+
     useEffect(() => {
         try { localStorage.setItem("lingua_provider", aiProvider); } catch { }
     }, [aiProvider]);
@@ -41,7 +43,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const value: SettingsContextType = {
         aiProvider, setAiProvider,
         aiModels, setAiModels,
-        apiKeys, setApiKeys
+        apiKeys, setApiKeys,
+        sessionStart
     };
 
     return (

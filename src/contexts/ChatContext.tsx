@@ -161,6 +161,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, [aiProvider, aiModels, apiKeys, USE_BACKEND, API_BASE_URL]);
 
+  const sendMessage = useCallback(async (inputText?: string) => {
+    // This will be implemented or passed from App.tsx
+    console.log("sendMessage placeholder", inputText);
+  }, []);
+
+  const sendScenario = useCallback(async (sit: any) => {
+    // This will be implemented or passed from App.tsx
+    console.log("sendScenario placeholder", sit);
+  }, []);
+
   const value: ChatContextType = {
     messages,
     setMessages,
@@ -181,6 +191,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
     clearMessages,
     initializeWelcomeMessage,
     callAI,
+    sendMessage,
+    sendScenario,
   };
 
   return (
