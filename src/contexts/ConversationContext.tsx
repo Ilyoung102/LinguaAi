@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { LANGUAGES } from "../constants";
-import { Conversation, ConversationContextType, Language } from "../types";
+import { Conversation, ConversationContextType } from "../types";
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
 
@@ -21,7 +21,7 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
   useEffect(() => {
     try {
       localStorage.setItem("lingua_conv_list", JSON.stringify(convList));
-    } catch {}
+    } catch { }
   }, [convList]);
 
   const addConversation = useCallback((entry: Conversation) => {

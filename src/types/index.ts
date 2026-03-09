@@ -58,6 +58,9 @@ export interface Conversation {
   filename?: string;
   title: string;
   langCode: string;
+  langName?: string;
+  langNativeName?: string;
+  langFlag?: string;
   level: string;
   mode: string;
   messages: ChatMessage[];
@@ -107,6 +110,7 @@ export interface ChatContextType {
   addJournalEntry: (entry: JournalEntry) => void;
   clearMessages: () => void;
   initializeWelcomeMessage: (msg: ChatMessage) => void;
+  callAI: (systemPrompt: string, history: { role: string; content: string }[], userText: string, maxTokens?: number) => Promise<string>;
 }
 
 export interface UIContextType {
@@ -126,4 +130,48 @@ export interface ConversationContextType {
   loadConversationsFromFiles: (files: File[], parseConvFile: any) => void;
   deleteConversation: (id: number) => void;
   clearAllConversations: () => void;
+}
+
+// TTS types
+export interface TTSHook {
+  ttsEnabled: boolean;
+  setTtsEnabled: (enabled: boolean) => void;
+  speakingId: number | null;
+  setSpeakingId: (id: number | null) => void;
+  ttsRepeat: boolean;
+  setTtsRepeat: (repeat: boolean) => void;
+  ttsRate: number;
+  setTtsRate: (rate: number) => void;
+  ttsPitch: number;
+  setTtsPitch: (pitch: number) => void;
+  ttsInterval: number;
+  setTtsInterval: (interval: number) => void;
+  ttsVoices: SpeechSynthesisVoice[];
+  selectedVoice: SpeechSynthesisVoice | null;
+  setSelectedVoice: (voice: SpeechSynthesisVoice | null) => void;
+  stopSpeaking: () => void;
+  speak: (text: string, msgId: number, splitSentencesFn: (text: string) => string[]) => void;
+  repeatSpeak: (text: string, msgId: number, splitSentencesFn: (text: string) => string[]) => void;
+}
+
+// Settings types
+export interface AIModels {
+  claude: string;
+  openai: string;
+  gemini: string;
+}
+
+export interface APIKeys {
+  claude: string;
+  openai: string;
+  gemini: string;
+}
+
+export interface SettingsContextType {
+  aiProvider: string;
+  setAiProvider: (provider: string) => void;
+  aiModels: AIModels;
+  setAiModels: (models: AIModels) => void;
+  apiKeys: APIKeys;
+  setApiKeys: (keys: APIKeys) => void;
 }

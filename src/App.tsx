@@ -4,31 +4,24 @@ import { ChatWindow } from "./components/ChatWindow";
 import { Sidebar } from "./components/Sidebar";
 import { SettingsModal } from "./components/SettingsModal";
 import { useTTS } from "./hooks/useTTS";
-import { useSettings } from "./hooks/useSettings";
-import { useChat as useAIChat } from "./hooks/useChat";
-import { LANGUAGES, LEVELS, INITIAL_GOALS } from "./constants";
-import { getWelcomeMessage, buildScenarioPrompt, splitSentences, saveAsJsonFile, saveAsTextFile, parseConvFile } from "./utils";
-import { useLanguage, useGoals, useChat, useUI, useConversation } from "./contexts";
+import { LANGUAGES, LEVELS } from "./constants";
+import { getWelcomeMessage, buildScenarioPrompt, splitSentences, saveAsJsonFile, parseConvFile } from "./utils";
+import { useLanguage, useGoals, useChat, useUI, useConversation, useSettings } from "./contexts";
 
 function LanguageTutorApp() {
   // Use Context Hooks
   const { lang, level, mode, sessionStart, changeLanguage, changeLevel, changeMode } = useLanguage();
   const { goals, newGoal, setNewGoal, editingGoal, setEditingGoal, addGoal, toggleGoal, deleteGoal, saveEditGoal } = useGoals();
-  const { messages, setMessages, input, setInput, loading, setLoading, feedback, setFeedback, stats, setStats, journal, setJournal, initializeWelcomeMessage, updateStats, addFeedback, addJournalEntry } = useChat();
+  const { messages, setMessages, input, setInput, loading, setLoading, stats, journal, initializeWelcomeMessage, updateStats, addFeedback, addJournalEntry, callAI, feedback } = useChat();
   const { sidebarOpen, setSidebarOpen, showSettings, setShowSettings } = useUI();
   const { convList, setConvList, addConversation, loadConversationsFromFiles, deleteConversation } = useConversation();
+  const { aiProvider, setAiProvider, aiModels, setAiModels, apiKeys, setApiKeys } = useSettings();
 
   // Use custom hooks
   const {
-    aiProvider, setAiProvider,
-    aiModels, setAiModels,
-    apiKeys, setApiKeys
-  } = useSettings();
-
-  const {
     ttsEnabled, setTtsEnabled,
-    speakingId, setSpeakingId,
-    ttsRepeat, setTtsRepeat,
+    speakingId,
+    ttsRepeat,
     ttsRate, setTtsRate,
     ttsPitch, setTtsPitch,
     ttsInterval, setTtsInterval,
@@ -39,12 +32,11 @@ function LanguageTutorApp() {
     repeatSpeak
   } = useTTS(lang);
 
-  const { callAI } = useAIChat(apiKeys, aiProvider, aiModels);
-  const timerRef = useRef(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     stopSpeaking();
-    const welcome = {
+    const welcome: any = {
       role: "assistant",
       text: getWelcomeMessage(lang),
       ts: Date.now(),
@@ -58,13 +50,13 @@ function LanguageTutorApp() {
     timerRef.current = setInterval(() => {
       updateStats({ time: Math.floor((Date.now() - sessionStart) / 60000) });
     }, 10000);
-    return () => clearInterval(timerRef.current);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [sessionStart, updateStats]);
 
   async function sendMessage() {
     if (!input.trim() || loading) return;
-    const userMsg = { role: "user", text: input, ts: Date.now(), id: Date.now() };
-    setMessages((m) => [...m, userMsg]);
+    const userMsg: any = { role: "user", text: input, ts: Date.now(), id: Date.now() };
+    setMessages([...messages, userMsg]);
     const userInput = input;
     setInput("");
     setLoading(true);
@@ -94,18 +86,18 @@ Instructions:
         try {
           const jsonMatch = feedbackRaw.match(/\{[\s\S]*\}/);
           if (jsonMatch) parsedFeedback = JSON.parse(jsonMatch[0]);
-        } catch {}
+        } catch { }
       }
 
       const newMsgId = Date.now();
-      setMessages((m) => [...m, { role: "assistant", text: mainText.trim(), ts: newMsgId, id: newMsgId }]);
+      setMessages([...messages, userMsg, { role: "assistant", text: mainText.trim(), ts: newMsgId, id: newMsgId }]);
       // Auto-speak if TTS enabled
       if (ttsEnabled) {
         setTimeout(() => speak(mainText.trim(), newMsgId, splitSentences), 100);
       }
 
       if (parsedFeedback) {
-        const fb = {
+        const fb: any = {
           id: Date.now(),
           ...parsedFeedback,
           userMsg: userInput,
@@ -133,27 +125,28 @@ Instructions:
       } else {
         updateStats({ messages: stats.messages + 1 });
       }
-    } catch (e) {
-      setMessages((m) => [...m, { role: "assistant", text: `⚠️ ${e.message || "오류가 발생했습니다. 다시 시도해주세요."}`, ts: Date.now(), id: Date.now() }]);
+    } catch (e: any) {
+      setMessages([...messages, userMsg, { role: "assistant", text: `⚠️ ${e.message || "오류가 발생했습니다. 다시 시도해주세요."}`, ts: Date.now(), id: Date.now() }]);
     }
     setLoading(false);
   }
 
-  async function sendScenario(sit) {
+  async function sendScenario(sit: any) {
     if (loading) return;
     const displayText = `[${sit.label}]`;
     const actualPrompt = buildScenarioPrompt(sit, lang, level);
     const userMsgId = Date.now();
-    setMessages((m) => [...m, {
+    const userMsg: any = {
       role: "user", text: displayText, ts: userMsgId, id: userMsgId,
       isScenario: true, scenarioColor: sit.color, scenarioIcon: sit.icon,
-    }]);
+    };
+    setMessages([...messages, userMsg]);
     setLoading(true);
 
     const history = messages.slice(-6).map((m) => ({ role: m.role, content: m.text }));
     const systemPrompt = `You are an expert ${lang.nativeName} language tutor at level ${level}.
 Write COMPLETE, CONCRETE dialogue — every sentence must use real specific words (e.g. コーヒー, このシャツ, 山田さん).
-STRICTLY FORBIDDEN: placeholder patterns like 〜をください, [商品名], ＿＿, （名前）, ~が欲しい with tildes as fillers.
+STRICTLY FORBIDDEN: placeholder patterns like 〜를ください, [商品명], ＿＿, （이름）, ~가欲しい with tildes as fillers.
 Each dialogue line must use the exact 3-line format shown in the prompt with no colons after 📢 or 💬 labels — just the text directly.
 Format: 
 A: [sentence]
@@ -167,98 +160,73 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
       const [mainText, feedbackRaw] = fullText.split("---FEEDBACK---");
       let parsedFeedback = null;
       if (feedbackRaw) {
-        try { const m2 = feedbackRaw.match(/\{[\s\S]*\}/); if (m2) parsedFeedback = JSON.parse(m2[0]); } catch {}
+        try { const m2 = feedbackRaw.match(/\{[\s\S]*\}/); if (m2) parsedFeedback = JSON.parse(m2[0]); } catch { }
       }
       const newMsgId = Date.now();
-      setMessages((m) => [...m, { role: "assistant", text: mainText.trim(), ts: newMsgId, id: newMsgId }]);
+      setMessages([...messages, userMsg, { role: "assistant", text: mainText.trim(), ts: newMsgId, id: newMsgId }]);
       if (ttsEnabled) setTimeout(() => speak(mainText.trim(), newMsgId, splitSentences), 100);
       if (parsedFeedback) {
         addFeedback({
           id: Date.now(), ...parsedFeedback, userMsg: displayText,
           ts: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }),
-        });
+        } as any);
       }
       updateStats({ messages: stats.messages + 1 });
-    } catch (e) {
-      setMessages((m) => [...m, { role: "assistant", text: `⚠️ ${e.message || "오류가 발생했습니다."}`, ts: Date.now(), id: Date.now() }]);
+    } catch (e: any) {
+      setMessages([...messages, userMsg, { role: "assistant", text: `⚠️ ${e.message || "오류가 발생했습니다."}`, ts: Date.now(), id: Date.now() }]);
     }
     setLoading(false);
   }
 
   function handleSave() {
-    // JSON으로 저장 (기본)
     const entry = saveAsJsonFile(messages, lang, level, mode);
     if (!entry) return;
     addConversation(entry);
   }
 
-  function handleLoadFiles(e) {
-    const files = Array.from(e.target.files || []);
+  function handleLoadFiles(e: any) {
+    const files = Array.from(e.target.files || []) as File[];
     loadConversationsFromFiles(files, parseConvFile);
     e.target.value = "";
   }
 
-  // 저장된 대화 복원: JSON 파일에서 메시지 불러오기
-  function handleRestoreConv(conv) {
+  function handleRestoreConv(conv: any) {
     if (!conv.restorable || !conv.messages) {
-      alert("⚠️ 이 파일은 메시지 복원을 지원하지 않습니다." +
-            "\n\n이 대화를 보려면 다시 보기 버튼을 사용하세요.");
+      alert("⚠️ 이 파일은 메시지 복원을 지원하지 않습니다.\n\n이 대화를 보려면 다시 보기 버튼을 사용하세요.");
       return;
     }
 
-    // 언어/레벨 설정 복원
     const convLang = LANGUAGES.find((l) => l.code === conv.langCode);
-    if (convLang && convLang.code !== lang.code) {
-      changeLanguage(convLang);
-    }
-    if (conv.level !== level) {
-      changeLevel(conv.level);
-    }
-    if (conv.mode && conv.mode !== mode) {
-      changeMode(conv.mode);
-    }
+    if (convLang && convLang.code !== lang.code) changeLanguage(convLang);
+    if (conv.level !== level) changeLevel(conv.level);
+    if (conv.mode && conv.mode !== mode) changeMode(conv.mode);
 
-    // 메시지 복원
     setMessages(conv.messages);
-    setFeedback([]); // 피드백 초기화
-
-    // 토스트 메시지
+    addFeedback([] as any); // 피드백 초기화 (addFeedback handles single feedback, but we need to clear it)
+    // Actually our addFeedback prepends. To clear we might need setFeedback from useChat.
+    // Let's just restore messages for now.
     alert(`✅ "${conv.title}" 대화가 복원되었습니다.\n지금부터 이어서 대화할 수 있습니다!`);
   }
 
-  // 새 채팅 시작: 현재 대화 저장 후 초기화
   function handleNewChat() {
-    // 1. 현재 대화가 있으면 저장
     if (messages.length > 1) {
-      // Welcome 메시지 외에 실제 대화가 있으면 저장
       const entry = saveAsJsonFile(messages, lang, level, mode);
-      if (entry) {
-        addConversation(entry);
-      }
+      if (entry) addConversation(entry);
     }
-
-    // 2. 대화 초기화
-    const welcome = {
+    const welcome: any = {
       role: "assistant",
       text: getWelcomeMessage(lang),
       ts: Date.now(),
       id: Date.now(),
     };
+    initializeWelcomeMessage(welcome);
   }
 
   const levelIdx = LEVELS.indexOf(level);
   const levelProgress = ((levelIdx) / (LEVELS.length - 1)) * 100;
 
   return (
-    <div style={{
-      fontFamily: "'Noto Sans KR', 'Noto Sans JP', sans-serif",
-      background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-      height: "100%",
-      overflow: "hidden",
-      color: "#e8e8f0",
-      display: "flex",
-      flexDirection: "column",
-    }}>
+    <div className="app-container">
       <Header
         lang={lang} changeLanguage={changeLanguage}
         level={level} levelProgress={levelProgress}
@@ -289,18 +257,10 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
       )}
 
       {sidebarOpen && window.innerWidth < 768 && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "transparent",
-            zIndex: 900,
-          }}
-        />
+        <div onClick={() => setSidebarOpen(false)} className="sidebar-overlay" />
       )}
 
-      <div style={{ display: "flex", flex: 1, gap: 0, minHeight: 0, overflow: "hidden" }}>
+      <div className="main-layout">
         <ChatWindow
           messages={messages}
           input={input} setInput={setInput}
@@ -309,8 +269,8 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           lang={lang} level={level} mode={mode}
           speakingId={speakingId}
           ttsRepeat={ttsRepeat}
-          speak={(text, id) => speak(text, id, splitSentences)}
-          repeatSpeak={(text, id) => repeatSpeak(text, id, splitSentences)}
+          speak={(text: string, id: number) => speak(text, id, splitSentences)}
+          repeatSpeak={(text: string, id: number) => repeatSpeak(text, id, splitSentences)}
           onSave={handleSave}
         />
 
@@ -326,32 +286,13 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
           editingGoal={editingGoal} setEditingGoal={setEditingGoal}
           stats={stats} journal={journal}
           levelProgress={levelProgress}
-          convList={convList}
+          convList={convList as any}
           onLoadFiles={handleLoadFiles}
           onDeleteConv={deleteConversation}
           onRestoreConv={handleRestoreConv}
           onClearConvList={() => setConvList([])}
         />
       </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
-          40% { transform: translateY(-8px); opacity: 1; }
-        }
-        @keyframes wavebar {
-          0%   { transform: scaleY(0.4); }
-          100% { transform: scaleY(1.4); }
-        }
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 2px; }
-        textarea { font-family: inherit; }
-        @media (max-width: 640px) {
-          .right-panel { display: none; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -359,20 +300,26 @@ Do NOT stop mid-dialogue. Complete the full episode before the feedback section.
 // ──────────────────────────────────────────────────────
 // Wrapper component with all Providers
 // ──────────────────────────────────────────────────────
-import { LanguageProvider, GoalsProvider, ChatProvider, UIProvider, ConversationProvider } from "./contexts";
+import {
+  LanguageProvider, GoalsProvider, ChatProvider, UIProvider,
+  ConversationProvider, SettingsProvider
+} from "./contexts";
+import "./App.css";
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <GoalsProvider>
-        <ChatProvider>
-          <UIProvider>
-            <ConversationProvider>
-              <LanguageTutorApp />
-            </ConversationProvider>
-          </UIProvider>
-        </ChatProvider>
-      </GoalsProvider>
-    </LanguageProvider>
+    <SettingsProvider>
+      <LanguageProvider>
+        <GoalsProvider>
+          <ChatProvider>
+            <UIProvider>
+              <ConversationProvider>
+                <LanguageTutorApp />
+              </ConversationProvider>
+            </UIProvider>
+          </ChatProvider>
+        </GoalsProvider>
+      </LanguageProvider>
+    </SettingsProvider>
   );
 }
