@@ -4,9 +4,9 @@ import { LANGUAGES, LEVEL_COLORS, MODE_LABELS, AI_PROVIDERS } from "../constants
 import { hexToRgb } from "../utils";
 
 export function Header({
-  lang, setLang,
+  lang, changeLanguage,
   level, levelProgress,
-  mode, setMode,
+  mode, changeMode,
   ttsEnabled, setTtsEnabled,
   speakingId,
   ttsRate, setTtsRate,
@@ -77,7 +77,7 @@ export function Header({
             boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
           }}>
             {LANGUAGES.map(l => (
-              <button key={l.code} onClick={() => { setLang(l); setShowLangDropdown(false); }} style={{
+              <button key={l.code} onClick={() => { changeLanguage(l); setShowLangDropdown(false); }} style={{
                 width: "100%",
                 padding: "10px 16px",
                 background: lang.code === l.code ? "rgba(167,139,250,0.2)" : "transparent",
@@ -92,8 +92,8 @@ export function Header({
                 transition: "background 0.15s",
               }}>
                 {l.flag} {l.name} <span style={{ opacity: 0.5, fontSize: "12px" }}>{l.nativeName}</span>
-                              </button>
-                            ))}
+              </button>
+            ))}
                           </div>
                         )}
                       </div>
@@ -244,7 +244,7 @@ export function Header({
 
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", padding: "4px" }}>
         {Object.entries(MODE_LABELS).map(([m, label]) => (
-          <button key={m} onClick={() => setMode(m)} style={{
+          <button key={m} onClick={() => changeMode(m)} style={{
             padding: "6px 12px",
             borderRadius: "8px",
             border: "none",
