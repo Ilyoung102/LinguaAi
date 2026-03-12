@@ -2,53 +2,20 @@ import { useState } from "react";
 import { Waveform } from "./Waveform";
 import { LANGUAGES, MODE_LABELS, AI_PROVIDERS } from "../constants";
 import { hexToRgb } from "../utils";
-import { Language, AIModels, APIKeys } from "../types";
+import { APIKeys } from "../types";
+import { useLanguage, useSettings } from "../contexts";
+import { useTTS } from "../hooks/useTTS";
 
 interface HeaderProps {
-    lang: Language;
-    changeLanguage: (lang: Language) => void;
-    level: string;
-    levelProgress: number;
-    mode: "casual" | "structured";
-    changeMode: (mode: "casual" | "structured") => void;
-    ttsEnabled: boolean;
-    setTtsEnabled: (enabled: boolean | ((v: boolean) => boolean)) => void;
-    speakingId: number | null;
-    ttsRate: number;
-    setTtsRate: (rate: number) => void;
-    ttsPitch: number;
-    setTtsPitch: (pitch: number) => void;
-    ttsInterval: number;
-    setTtsInterval: (interval: number) => void;
-    ttsVoices: SpeechSynthesisVoice[];
-    selectedVoice: SpeechSynthesisVoice | null;
-    setSelectedVoice: (voice: SpeechSynthesisVoice | null) => void;
-    stopSpeaking: () => void;
-    aiProvider: string;
-    aiModels: AIModels;
-    apiKeys: APIKeys;
-    setShowSettings: (show: boolean) => void;
-    sidebarOpen: boolean;
-    setSidebarOpen: (open: boolean | ((v: boolean) => boolean)) => void;
     onNewChat: () => void;
 }
 
 export function Header({
-    lang, changeLanguage,
-    mode, changeMode,
-    ttsEnabled, setTtsEnabled,
-    speakingId,
-    ttsRate, setTtsRate,
-    ttsPitch, setTtsPitch,
-    ttsInterval, setTtsInterval,
-    ttsVoices,
-    selectedVoice, setSelectedVoice,
-    stopSpeaking,
-    aiProvider,
-    apiKeys,
-    setShowSettings,
     onNewChat
 }: HeaderProps) {
+    const { lang, changeLanguage, mode, changeMode } = useLanguage();
+    const { ttsEnabled, setTtsEnabled, speakingId, ttsRate, setTtsRate, ttsPitch, setTtsPitch, ttsInterval, setTtsInterval, ttsVoices, selectedVoice, setSelectedVoice, stopSpeaking } = useTTS(lang);
+    const { aiProvider, apiKeys, setShowSettings } = useSettings() as any; // Using any for now to bypass missing type in Context
     const [showLangDropdown, setShowLangDropdown] = useState(false);
     const [showTtsPanel, setShowTtsPanel] = useState(false);
 

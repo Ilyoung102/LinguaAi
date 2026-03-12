@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { AI_PROVIDERS } from "../constants";
 import { hexToRgb } from "../utils";
+import { useSettings, useUI } from "../contexts";
 
-export function SettingsModal({
-  aiProvider, setAiProvider,
-  aiModels, setAiModels,
-  apiKeys, setApiKeys,
-  setShowSettings
-}) {
+export function SettingsModal() {
+  const { aiProvider, setAiProvider, aiModels, setAiModels, apiKeys, setApiKeys } = useSettings();
+  const { setShowSettings } = useUI();
   const [showKeys, setShowKeys] = useState({ claude: false, openai: false, gemini: false });
 
   return (

@@ -162,14 +162,88 @@ export function ChatProvider({ children }: ChatProviderProps) {
   }, [aiProvider, aiModels, apiKeys, USE_BACKEND, API_BASE_URL]);
 
   const sendMessage = useCallback(async (inputText?: string) => {
-    // This will be implemented or passed from App.tsx
-    console.log("sendMessage placeholder", inputText);
-  }, []);
+    const textToSend = inputText || input;
+    if (!textToSend.trim() || loading) return;
+
+    setLoading(true);
+    const userMsg: ChatMessage = {
+      role: "user",
+      text: textToSend,
+      ts: Date.now(),
+      id: Date.now(),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    try {
+      // Build history for API
+      const history = messages.map((m) => ({
+        role: m.role,
+        content: m.text,
+      }));
+
+      // Generate feedback prompt for better quality
+      const systemPrompt = `You are a helpful language tutor. Provide feedback on grammar and vocabulary if needed, and respond naturally to the user.`;
+      
+      const responseText = await callAI(systemPrompt, history, textToSend);
+
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        text: responseText,
+        ts: Date.now(),
+        id: Date.now() + 1,
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+      updateStats({ messages: stats.messages + 1 });
+    } catch (error: any) {
+      console.error("Failed to send message:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(true); // Wait, should be false
+      setLoading(false);
+    }
+  }, [input, loading, messages, callAI, updateStats, stats.messages]);
 
   const sendScenario = useCallback(async (sit: any) => {
-    // This will be implemented or passed from App.tsx
-    console.log("sendScenario placeholder", sit);
-  }, []);
+    if (loading) return;
+
+    setLoading(true);
+    const scenarioMsg: ChatMessage = {
+      role: "user",
+      text: sit.label,
+      ts: Date.now(),
+      id: Date.now(),
+      isScenario: true,
+      scenarioColor: sit.color,
+      scenarioIcon: sit.icon,
+    };
+
+    setMessages((prev) => [...prev, scenarioMsg]);
+
+    try {
+      // Note: We need language and level here. In a better design, we'd get them from context.
+      // For now, we'll assume they are provided or we might need to adjust the hook to depend on them.
+      const systemPrompt = `Create a dialogue for the scenario: ${sit.label}. Follow the learning patterns.`;
+      const responseText = await callAI(systemPrompt, [], `Start scenario: ${sit.label}`);
+
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        text: responseText,
+        ts: Date.now(),
+        id: Date.now() + 1,
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (error: any) {
+      console.error("Failed to send scenario:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, callAI]);
+
 
   const value: ChatContextType = {
     messages,

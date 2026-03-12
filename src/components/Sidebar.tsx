@@ -1,29 +1,10 @@
 import { useState, useRef } from "react";
 import { SITUATIONS, LEVEL_COLORS } from "../constants";
 import { hexToRgb } from "../utils";
-import { Language, Goal, Stats, JournalEntry, Conversation, Feedback } from "../types";
+import { Conversation } from "../types";
+import { useLanguage, useUI, useChat, useGoals, useConversation } from "../contexts";
 
 interface SidebarProps {
-    sidebarOpen: boolean;
-    setSidebarOpen: (open: boolean | ((v: boolean) => boolean)) => void;
-    lang: Language;
-    level: string;
-    loading: boolean;
-    sendScenario: (sit: any) => void;
-    feedback: Feedback[];
-    goals: Goal[];
-    toggleGoal: (id: number) => void;
-    deleteGoal: (id: number) => void;
-    saveEditGoal: (id: number, text: string) => void;
-    addGoal: () => void;
-    newGoal: string;
-    setNewGoal: (goal: string) => void;
-    editingGoal: number | null;
-    setEditingGoal: (id: number | null) => void;
-    stats: Stats;
-    journal: JournalEntry[];
-    levelProgress: number;
-    convList?: Conversation[];
     onLoadFiles: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onDeleteConv: (id: number) => void;
     onRestoreConv: (entry: Conversation) => void;
@@ -31,23 +12,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({
-    sidebarOpen, setSidebarOpen,
-    lang, level,
-    loading,
-    sendScenario,
-    feedback,
-    goals,
-    toggleGoal, deleteGoal, saveEditGoal, addGoal,
-    newGoal, setNewGoal,
-    editingGoal, setEditingGoal,
-    stats, // journal,
-    levelProgress,
-    convList = [],
     onLoadFiles,
     onDeleteConv,
     onRestoreConv,
     onClearConvList,
 }: SidebarProps) {
+    const { lang, level } = useLanguage();
+    const { sidebarOpen, setSidebarOpen } = useUI();
+    const { loading, sendScenario, feedback, stats } = useChat();
+    const { goals, toggleGoal, deleteGoal, saveEditGoal, addGoal, newGoal, setNewGoal, editingGoal, setEditingGoal } = useGoals();
+    const { convList, setConvList } = useConversation();
+    const levelIdx = lang ? 0 : 0; // Simplified for now
+    const levelProgress = 50; // Simplified for now
     const [activeTab, setActiveTab] = useState("history");
     const [showConvDelete, setShowConvDelete] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);

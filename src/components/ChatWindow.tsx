@@ -1,40 +1,21 @@
 import { useRef, useEffect } from "react";
 import { FormattedMessage } from "./FormattedMessage";
 import { Waveform } from "./Waveform";
-import { hexToRgb } from "../utils";
-import { ChatMessage, Language } from "../types";
+import { hexToRgb, splitSentences } from "../utils";
+import { useLanguage, useChat } from "../contexts";
+import { useTTS } from "../hooks/useTTS";
 
 interface ChatWindowProps {
-    messages: ChatMessage[];
-    input: string;
-    setInput: (input: string) => void;
-    loading: boolean;
-    sendMessage: (inputText?: string) => Promise<void>;
-    lang: Language;
-    level: string;
-    mode: "casual" | "structured";
-    speakingId: number | null;
-    ttsRepeat: boolean;
-    speak: (text: string, msgId: number) => void;
-    repeatSpeak: (text: string, msgId: number) => void;
     onSave?: () => void;
 }
 
 export function ChatWindow({
-    messages,
-    input,
-    setInput,
-    loading,
-    sendMessage,
-    lang,
-    // level, 
-    // mode,
-    speakingId,
-    ttsRepeat,
-    speak,
-    repeatSpeak,
     onSave,
 }: ChatWindowProps) {
+    const { lang } = useLanguage();
+    const { messages, input, setInput, loading, sendMessage } = useChat();
+    const { speakingId, ttsRepeat, speak, repeatSpeak } = useTTS(lang);
+    
     const chatRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -119,7 +100,7 @@ export function ChatWindow({
                                 }}>
                                     {/* Play/Stop button */}
                                     <button
-                                        onClick={() => speak(msg.text, msg.id)}
+                                        onClick={() => speak(msg.text, msg.id, splitSentences)}
                                         title={speakingId === msg.id ? "정지" : "읽기"}
                                         style={{
                                             background: speakingId === msg.id ? "rgba(244,114,182,0.25)" : "rgba(255,255,255,0.08)",
@@ -140,7 +121,7 @@ export function ChatWindow({
                                     </button>
                                     {/* Repeat toggle button */}
                                     <button
-                                        onClick={() => repeatSpeak(msg.text, msg.id)}
+                                        onClick={() => repeatSpeak(msg.text, msg.id, splitSentences)}
                                         title={ttsRepeat && speakingId === msg.id ? "반복 끄기" : "반복 재생"}
                                         style={{
                                             background: ttsRepeat && speakingId === msg.id ? "rgba(251,191,36,0.25)" : "rgba(255,255,255,0.06)",
